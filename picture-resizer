@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Script para nautilus que cambia el tamano de las imagenes
+# seleccionadas.
+# Roberto D'Oliveira
+# jue nov 29 12:38:03 VET 2007
+# Requiere: nautilus, imagemagick
+
+DIR_DESTINO=""
+PROPORCION="NO DEFINIDA"
+
+seleccionar_directorio(){
+	zenity	--file-selection \
+		--filename="~" \
+		--directory \
+		--title="Seleccione el directorio destino"
+
+	if [ $? != 0 ]
+	then
+		zenity	--error \
+			--text="Proceso abortado"
+		kill $$
+	fi
+		
+}
+
+obtener_proporcion(){
+	zenity 	--entry \
+		--text="Proporcion (Ej. 70, para 70%)" \
+		--title="Indique proporcion"
+
+	if [ $? != 0 ]
+	then
+		zenity	--error \
+			--text="Proceso abortado"
+		kill $$
+	fi
+}
+
+# Hacemos la comprobacion de si existe el comando convert
+if ! [ -x /usr/bin/convert ]
+	then
+	zenity	--error \
+		--text="No existe el comando convert, llame a
+			soporte tecnico"
+	kill $$
+fi
+
+DIR_DESTINO=$( seleccionar_directorio )
+
+#while $( echo $PROPORCION | grep "[:alpha:]" ) 
+#do
+	PROPORCION=$( obtener_proporcion )
+#done
+
+for FOTO in $( echo $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS )
+	do
+		convert $FOTO -resize ${PROPORCION}% ${DIR_DESTINO}/$(basename $FOTO)
+	done
+
+zenity	--question \
+	--text="Trabajo terminado ¿Desea ver el resultado?" \
+	&& nautilus --no-desktop $DIR_DESTINO
+
+exit 0
